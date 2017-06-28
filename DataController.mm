@@ -1013,10 +1013,20 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
 //----------------------------------------------------------------------------
 -(void)createMachOLayout:(MVNode *)node
              mach_header:(struct mach_header const *)mach_header
+                  length:(uint32_t)length
 {
+    NSString *size = @"";
+    if (length < 1024){
+        size = [NSString stringWithFormat:@"%uB",length];
+    }else if (length < 1024*1024){
+        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
+    }else{
+        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
+    }
+    
   NSString * machine = [self getMachine:mach_header->cputype];
   
-  node.caption = [NSString stringWithFormat:@"%@ (%@)",
+  node.caption = [NSString stringWithFormat:@"%@ (%@) (%@)",
                   mach_header->filetype == MH_OBJECT      ? @"Object " :
                   mach_header->filetype == MH_EXECUTE     ? @"Executable " :
                   mach_header->filetype == MH_FVMLIB      ? @"Fixed VM Shared Library" :
@@ -1028,7 +1038,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
                   mach_header->filetype == MH_DYLIB_STUB  ? @"Shared Library Stub" : 
                   mach_header->filetype == MH_DSYM        ? @"Debug Symbols" : 
                   mach_header->filetype == MH_KEXT_BUNDLE ? @"Kernel Extension" : @"?????",
-                  [machine isEqualToString:@"ARM"] == YES ? [self getARMCpu:mach_header->cpusubtype] : machine];
+                  [machine isEqualToString:@"ARM"] == YES ? [self getARMCpu:mach_header->cpusubtype] : machine,size];
   
   MachOLayout * layout = [MachOLayout layoutWithDataController:self rootNode:node];
                           
@@ -1048,10 +1058,20 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
 //----------------------------------------------------------------------------
 -(void)createMachO64Layout:(MVNode *)node
             mach_header_64:(struct mach_header_64 const *)mach_header_64
+                    length:(uint32_t)length
 {
+    NSString *size = @"";
+    if (length < 1024){
+        size = [NSString stringWithFormat:@"%uB",length];
+    }else if (length < 1024*1024){
+        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
+    }else{
+        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
+    }
+    
   NSString * machine = [self getMachine:mach_header_64->cputype];
 
-  node.caption = [NSString stringWithFormat:@"%@ (%@)",
+  node.caption = [NSString stringWithFormat:@"%@ (%@) (%@)",
                   mach_header_64->filetype == MH_OBJECT      ? @"Object " :
                   mach_header_64->filetype == MH_EXECUTE     ? @"Executable " :
                   mach_header_64->filetype == MH_FVMLIB      ? @"Fixed VM Shared Library" :
@@ -1063,7 +1083,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
                   mach_header_64->filetype == MH_DYLIB_STUB  ? @"Shared Library Stub" :
                   mach_header_64->filetype == MH_DSYM        ? @"Debug Symbols" :
                   mach_header_64->filetype == MH_KEXT_BUNDLE ? @"Kernel Extension" : @"?????",
-                  [machine isEqualToString:@"ARM64"] == YES ? [self getARM64Cpu:mach_header_64->cpusubtype] : machine];
+                  [machine isEqualToString:@"ARM64"] == YES ? [self getARM64Cpu:mach_header_64->cpusubtype] : machine,size];
   
   MachOLayout * layout = [MachOLayout layoutWithDataController:self rootNode:node];
 
@@ -1117,7 +1137,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
       [fileData getBytes:&fat_header range:NSMakeRange(location, sizeof(struct fat_header))];
       if (magic == FAT_CIGAM)
         swap_fat_header(&fat_header, NX_LittleEndian);
-      [self createFatLayout:parent fat_header:&fat_header];
+      [self createFatLayout:parent fat_header:&fat_header length:length];
     } break;
       
     case MH_MAGIC:
@@ -1127,7 +1147,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
       [fileData getBytes:&mach_header range:NSMakeRange(location, sizeof(struct mach_header))];
       if (magic == MH_CIGAM)
         swap_mach_header(&mach_header, NX_LittleEndian);
-      [self createMachOLayout:parent mach_header:&mach_header];
+      [self createMachOLayout:parent mach_header:&mach_header length:length];
     } break;
       
     case MH_MAGIC_64:
@@ -1137,7 +1157,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
       [fileData getBytes:&mach_header_64 range:NSMakeRange(location, sizeof(struct mach_header_64))];
       if (magic == MH_CIGAM_64)
         swap_mach_header_64(&mach_header_64, NX_LittleEndian);
-      [self createMachO64Layout:parent mach_header_64:&mach_header_64];
+      [self createMachO64Layout:parent mach_header_64:&mach_header_64 length:length];
     } break;
     
     default:
@@ -1150,8 +1170,17 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
 //----------------------------------------------------------------------------
 -(void)createFatLayout:(MVNode *)node
             fat_header:(struct fat_header const *)fat_header
+                length:(uint32_t)length
 {
-  node.caption = @"Fat Binary";
+    NSString *size = @"";
+    if (length < 1024){
+        size = [NSString stringWithFormat:@"%uB",length];
+    }else if (length < 1024*1024){
+        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
+    }else{
+        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
+    }
+  node.caption = [NSString stringWithFormat:@"Fat Binary (%@)",size];
   FatLayout * layout = [FatLayout layoutWithDataController:self rootNode:node];
   
   [node.userInfo setObject:layout forKey:MVLayoutUserInfoKey];
