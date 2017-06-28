@@ -1015,14 +1015,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
              mach_header:(struct mach_header const *)mach_header
                   length:(uint32_t)length
 {
-    NSString *size = @"";
-    if (length < 1024){
-        size = [NSString stringWithFormat:@"%uB",length];
-    }else if (length < 1024*1024){
-        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
-    }else{
-        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
-    }
+  NSString *size = [self getFormatStrSize:length];
     
   NSString * machine = [self getMachine:mach_header->cputype];
   
@@ -1060,14 +1053,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
             mach_header_64:(struct mach_header_64 const *)mach_header_64
                     length:(uint32_t)length
 {
-    NSString *size = @"";
-    if (length < 1024){
-        size = [NSString stringWithFormat:@"%uB",length];
-    }else if (length < 1024*1024){
-        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
-    }else{
-        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
-    }
+  NSString *size = [self getFormatStrSize:length];
     
   NSString * machine = [self getMachine:mach_header_64->cputype];
 
@@ -1172,14 +1158,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
             fat_header:(struct fat_header const *)fat_header
                 length:(uint32_t)length
 {
-    NSString *size = @"";
-    if (length < 1024){
-        size = [NSString stringWithFormat:@"%uB",length];
-    }else if (length < 1024*1024){
-        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
-    }else{
-        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
-    }
+  NSString *size = [self getFormatStrSize:length];
   node.caption = [NSString stringWithFormat:@"Fat Binary (%@)",size];
   FatLayout * layout = [FatLayout layoutWithDataController:self rootNode:node];
   
@@ -1246,6 +1225,18 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
   [nc postNotificationName:MVThreadStateChangedNotification 
                     object:self
                   userInfo:[NSDictionary dictionaryWithObject:status forKey:MVStatusUserInfoKey]];
+}
+
+- (NSString*)getFormatStrSize:(uint32_t)length{
+    NSString *size = @"";
+    if (length < 1024){
+        size = [NSString stringWithFormat:@"%uB",length];
+    }else if (length < 1024*1024){
+        size = [NSString stringWithFormat:@"%.2fKB",length/1024.0];
+    }else{
+        size = [NSString stringWithFormat:@"%.2fMB",length/(1024.0*1024.0)];
+    }
+    return size;
 }
 
 @end
