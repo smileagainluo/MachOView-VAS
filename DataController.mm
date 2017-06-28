@@ -163,6 +163,9 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
 //-----------------------------------------------------------------------------
 - (void)writeString:(NSString *)str toFile:(FILE *)pFile
 {
+    if (!str){
+        str = @"";
+    }
   fwrite(CSTRING(str), [str length] + 1, 1, pFile);
 }
 
@@ -775,7 +778,14 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
               length:(uint32_t)length
 {
   MVNode * node = [[MVNode alloc] init];
-  node.caption = _caption;
+//  node.caption = _caption;
+    if (length < 1024){
+        node.caption = [NSString stringWithFormat:@"%@    (%uB)",_caption,length];
+    }else if (length < 1024*1024){
+        node.caption = [NSString stringWithFormat:@"%@    (%.2fKB)",_caption,length/1024.0];
+    }else{
+        node.caption = [NSString stringWithFormat:@"%@    (%.2fMB)",_caption,length/(1024.0*1024.0)];
+    }
   node.dataRange = NSMakeRange(location,length);
   node.parent = self;
   [node.userInfo addEntriesFromDictionary:userInfo];
