@@ -1357,7 +1357,7 @@ NSString * const MVStatusTaskTerminated           = @"MVStatusTaskTerminated";
         }
         
         // reset buffer
-        objectsToSave = [[NSMutableArray alloc] init];
+          [objectsToSave removeAllObjects];
 
         [saverLock unlock];
       }
